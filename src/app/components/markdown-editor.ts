@@ -46,7 +46,20 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
   @ViewChild('preview', { static: false }) previewRef?: ElementRef<HTMLElement>;
   @ViewChild('editor', { static: true }) editorRef!: ElementRef<HTMLTextAreaElement>;
 
-  protected readonly markdown = signal<string>(`# Welcome to Markdown Studio\n\nEdit text and select it to format!\n`);
+  protected readonly markdown = signal<string>(`
+    # Welcome to Markdown Studio: Markdown Studio: Write, Preview, Export
+    
+    ✨ Features  
+
+    Markdown Studio includes:  
+    - 📝 **Markdown Editor** – Write and edit using Markdown syntax  
+    - 👀 **Live Preview** – See your formatted content instantly  
+    - 📑 **Export to PDF** – Save your notes or reports in PDF format  
+    - 📂 **Resizable Layout** – Adjustable editor/preview panels with scrollbar  
+    - 💡 **Syntax Highlighting** – Highlight code snippets for readability  
+    - ⚡ **Lightweight & Fast** – Built with Angular 20 and TailwindCSS  
+  `);
+
   protected readonly leftWidth = signal<number>(50);
   protected exportingPdf = signal(false);
 
