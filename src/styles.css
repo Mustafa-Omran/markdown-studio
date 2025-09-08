@@ -5,6 +5,11 @@
 @tailwind utilities;
 
 @layer base {
-  ::selection { @apply bg-emerald-400/30 text-white; }
-  html { scroll-behavior: smooth; }
+  ::selection {
+    @apply bg-emerald-400/30 text-white;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
 }

@@ -14,6 +14,7 @@ import markdown from 'highlight.js/lib/languages/markdown';
 import yaml from 'highlight.js/lib/languages/yaml';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { formatButtons } from './format-buttons';
 
 hljs.registerLanguage('javascript', javascript);
 hljs.registerLanguage('js', javascript);
@@ -77,11 +78,18 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
     return this.sanitizer.bypassSecurityTrustHtml(html);
   });
 
+  protected readonly formatButtons = formatButtons;
+  protected theme = signal<'dark' | 'light'>('dark');
+
   constructor(private sanitizer: DomSanitizer) {
     effect(() => {
       // Re-run highlighting whenever the rendered HTML changes
       const _ = this.renderedHtml();
       queueMicrotask(() => this.applyHighlight());
+    });
+
+    this.formatButtons.map(btn => {
+      btn.icon = this.sanitizer.bypassSecurityTrustHtml(btn.icon) as any;
     });
   }
 
@@ -144,7 +152,7 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
     try {
       const previewEl = this.previewRef?.nativeElement || this.containerRef.nativeElement;
 
-      // Add temporary padding
+      // Add temporary padding for export
       const originalPadding = previewEl.style.padding;
       previewEl.style.padding = '20px';
 
@@ -160,23 +168,31 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
+
       const imgWidth = pageWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      let remainingHeight = imgHeight;
-      let position = 0;
+      // Total height of content in mm
+      const totalHeightMm = (canvas.height / canvas.width) * pageWidth;
 
-      while (remainingHeight > 0) {
+      let positionMm = 0;
+
+      while (positionMm < totalHeightMm) {
+        const remainingHeightMm = totalHeightMm - positionMm;
+        const sliceHeightMm = Math.min(pageHeight, remainingHeightMm);
+
+        const sliceHeightPx = Math.round((sliceHeightMm / totalHeightMm) * canvas.height);
+
+        // Create slice canvas
         const pageCanvas = document.createElement('canvas');
-        const ctx = pageCanvas.getContext('2d')!;
-        const sliceHeightPx = Math.min(canvas.height - (position / imgHeight) * canvas.height, canvas.height);
         pageCanvas.width = canvas.width;
         pageCanvas.height = sliceHeightPx;
 
+        const ctx = pageCanvas.getContext('2d')!;
         ctx.drawImage(
           canvas,
           0,
-          (position / imgHeight) * canvas.height,
+          (positionMm / totalHeightMm) * canvas.height,
           canvas.width,
           sliceHeightPx,
           0,
@@ -188,11 +204,12 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
         const pageImgData = pageCanvas.toDataURL('image/png');
         const pageImgHeight = (sliceHeightPx * imgWidth) / canvas.width;
 
-        if (position > 0) pdf.addPage();
+        if (positionMm > 0) pdf.addPage();
+
+        // 🟢 FIX: last page uses sliceHeightMm (no extra blank space)
         pdf.addImage(pageImgData, 'PNG', 0, 0, imgWidth, pageImgHeight);
 
-        position += pageHeight;
-        remainingHeight -= pageHeight;
+        positionMm += sliceHeightMm;
       }
 
       pdf.save('markdown-preview.pdf');
@@ -200,6 +217,8 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
       this.exportingPdf.set(false);
     }
   }
+
+
   // ---------- Text selection menu logic ----------
   onTextSelect(ev: MouseEvent) {
     const textarea = this.editorRef.nativeElement;
@@ -222,6 +241,8 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
     this.showMenu.set(true);
   }
 
+  activeFormats = new Set<string>();
+
   applyFormat(type: string) {
     if (!this.selectionRange) return;
 
@@ -230,26 +251,86 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
     const selected = text.slice(start, end);
     let formatted = selected;
 
+    // Detect if already active
+    const isActive = this.activeFormats.has(type);
+
     switch (type) {
-      case 'bold': formatted = `**${selected}**`; break;
-      case 'italic': formatted = `*${selected}*`; break;
-      case 'code': formatted = `\`${selected}\``; break;
-      case 'codeBlock': formatted = `\`\`\`\n${selected}\n\`\`\``; break;
-      case 'underline': formatted = `<u>${selected}</u>`; break;
-      case 'strikethrough': formatted = `~~${selected}~~`; break;
-      case 'link': formatted = `[${selected}](url)`; break;
+      case 'bold':
+        formatted = isActive
+          ? selected.replace(/^\*\*(.*)\*\*$/, '$1') // remove
+          : `**${selected}**`;
+        break;
+
+      case 'italic':
+        formatted = isActive
+          ? selected.replace(/^\*(.*)\*$/, '$1')
+          : `*${selected}*`;
+        break;
+
+      case 'code':
+        formatted = isActive
+          ? selected.replace(/^`(.*)`$/, '$1')
+          : `\`${selected}\``;
+        break;
+
+      case 'codeBlock':
+        formatted = isActive
+          ? selected.replace(/^```[\\s\\S]*```$/, selected) // remove
+          : `\`\`\`\n${selected}\n\`\`\``;
+        break;
+
+      case 'underline':
+        formatted = isActive
+          ? selected.replace(/^<u>(.*)<\/u>$/, '$1')
+          : `<u>${selected}</u>`;
+        break;
+
+      case 'strikethrough':
+        formatted = isActive
+          ? selected.replace(/^~~(.*)~~$/, '$1')
+          : `~~${selected}~~`;
+        break;
+
+      case 'link':
+        formatted = isActive
+          ? selected.replace(/^\\[(.*)\\]\\(.*\\)$/, '$1')
+          : `[${selected}](url)`;
+        break;
+
       case 'h1': formatted = `# ${selected}`; break;
       case 'h2': formatted = `## ${selected}`; break;
       case 'h3': formatted = `### ${selected}`; break;
       case 'h4': formatted = `#### ${selected}`; break;
-      case 'blockquote': formatted = `> ${selected}`; break;
-      case 'ul': formatted = selected.split('\n').map(line => `- ${line}`).join('\n'); break;
-      case 'ol': formatted = selected.split('\n').map((line, i) => `${i + 1}. ${line}`).join('\n'); break;
+
+      case 'blockquote':
+        formatted = isActive
+          ? selected.replace(/^> /gm, '') // remove blockquote
+          : `> ${selected}`;
+        break;
+
+      case 'ul':
+        formatted = isActive
+          ? selected.replace(/^- /gm, '')
+          : selected.split('\n').map(line => `- ${line}`).join('\n');
+        break;
+
+      case 'ol':
+        formatted = isActive
+          ? selected.replace(/^\\d+\\. /gm, '')
+          : selected.split('\n').map((line, i) => `${i + 1}. ${line}`).join('\n');
+        break;
     }
 
+    // Insert new text
     const newText = text.slice(0, start) + formatted + text.slice(end);
     this.markdown.set(newText);
-    this.showMenu.set(false);
+
+    // Toggle active state
+    if (isActive) {
+      this.activeFormats.delete(type);
+    } else {
+      this.activeFormats.add(type);
+    }
 
     // Reset selection
     setTimeout(() => {
@@ -259,4 +340,7 @@ export class MarkdownEditorComponent implements OnInit, OnDestroy {
     });
   }
 
+  toggleTheme() {
+    this.theme.update(t => (t === 'dark' ? 'light' : 'dark'));
+  }
 }
