@@ -1,60 +1,92 @@
-# FusionAngularTailwindStarter
+# Markdown Studio  
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.2.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version **20.1.2**.  
+It is built with **Angular + TailwindCSS**.  
 
-## Development server
+---
 
-To start a local development server, run:
+## ✨ Features  
+
+Markdown Studio includes:  
+- 📝 **Markdown Editor** – Write and edit using Markdown syntax  
+- 👀 **Live Preview** – See your formatted content instantly  
+- 📑 **Export to PDF** – Save your notes or reports in PDF format  
+- 📂 **Resizable Layout** – Adjustable editor/preview panels with scrollbar  
+- 🌈 **Syntax Highlighting** – Highlight code snippets for readability  
+- ⚡ **Lightweight & Fast** – Built with Angular 20 and TailwindCSS  
+
+---
+
+## 🚀 Development Server  
+
+Start a local development server with:  
 
 ```bash
 ng serve
-```
+````
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Once running, open your browser at [http://localhost:4200/](http://localhost:4200/).
+The app will automatically reload when you modify source files.
 
-## Code scaffolding
+---
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## ⚡ Code Scaffolding
+
+Angular CLI provides scaffolding tools to quickly generate code.
+
+Generate a new component:
 
 ```bash
 ng generate component component-name
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+For a complete list of available schematics (e.g. `components`, `directives`, `pipes`):
 
 ```bash
 ng generate --help
 ```
 
-## Building
+---
 
-To build the project run:
+## 🏗️ Building
+
+Build the project with:
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+The build artifacts will be stored in the `dist/` directory.
+By default, production builds are optimized for **performance and speed**.
 
-## Running unit tests
+---
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+## 🧪 Running Unit Tests
+
+Run unit tests with the [Karma](https://karma-runner.github.io) test runner:
 
 ```bash
 ng test
 ```
 
-## Running end-to-end tests
+---
 
-For end-to-end (e2e) testing, run:
+## 🌐 Running End-to-End Tests
+
+For e2e tests:
 
 ```bash
 ng e2e
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+> ⚠️ Angular CLI does not include an e2e framework by default.
+> You can choose the one that fits your project (e.g. Cypress, Playwright).
 
-## Additional Resources
+---
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
-# markdown-studio
+## 📚 Additional Resources
+
+* [Angular CLI Overview & Command Reference](https://angular.dev/tools/cli)
+* [TailwindCSS Documentation](https://tailwindcss.com/docs)
+
+---
