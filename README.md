@@ -12,7 +12,7 @@ Markdown Studio includes:
 - 👀 **Live Preview** – See your formatted content instantly  
 - 📑 **Export to PDF** – Save your notes or reports in PDF format  
 - 📂 **Resizable Layout** – Adjustable editor/preview panels with scrollbar  
-- 🌈 **Syntax Highlighting** – Highlight code snippets for readability  
+- 💡 **Syntax Highlighting** – Highlight code snippets for readability  
 - ⚡ **Lightweight & Fast** – Built with Angular 20 and TailwindCSS  
 
 ---
